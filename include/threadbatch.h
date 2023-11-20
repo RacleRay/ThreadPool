@@ -28,23 +28,27 @@ private:
     taskqueue<std::function<void()>> m_taskqueue {};
 
     mutable std::mutex m_workers_mutex {};
-    std::condition_variable m_thread_release_cv {};
+    std::condition_variable m_thread_cv {};
     std::condition_variable m_task_done_cv {};
-
 
     void mission();
     
     template <typename F>
-    void recursive_exec(F&& task);
+    void recursive_exec(F&& task)  {
+        task();
+    }
 
     template <typename F, typename... Fs>
-    void recursive_exec(F&& task, Fs&&... tasks);
+    void recursive_exec(F&& task, Fs&&... tasks) {
+        task();
+        recursive_exec(std::forward<Fs>(tasks)...);
+    }
 
 public:
     explicit threadbatch(size_t n_threads = 1) {
         for (size_t i = 0; i < n_threads; ++i) {
             add_worker();
-    }
+        }
     }
 
     ~threadbatch();
@@ -52,7 +56,7 @@ public:
     void add_worker();
     void del_worker();  // lazy excution by monitoring m_n_to_release
 
-    bool wait_tasks(unsigned int timeout_ms = 0);
+    bool wait_tasks(unsigned int timeout_ms = -1);
     size_t num_workers() const;
     size_t num_tasks() const;
 

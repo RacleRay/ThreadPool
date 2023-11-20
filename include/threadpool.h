@@ -127,7 +127,7 @@ public:
         assert(m_batch_list.size() > 0);
         auto* this_batch = m_cur_batch->get();
         auto* target_batch = find_optimal_batch(m_cur_batch)->get();
-        target_batch->submit<T>(std::forward<F>(task));
+        return target_batch->submit<T>(std::forward<F>(task));
     }
 
     template <
@@ -136,10 +136,10 @@ public:
         typename R = details::result_of_t<F>,
         typename CHECK_R = typename std::enable_if<!std::is_void<R>::value>::type>
     std::future<R> submit(F&& task) {
-        assert(m_batch_list.size() > 0);
+        assert(!m_batch_list.empty());
         auto* this_batch = m_cur_batch->get();
         auto* target_batch = find_optimal_batch(m_cur_batch)->get();
-        target_batch->submit<T>(std::forward<F>(task));
+        return target_batch->submit<T>(std::forward<F>(task));
     }    
 
     template <typename T, typename F, typename... Fs>
