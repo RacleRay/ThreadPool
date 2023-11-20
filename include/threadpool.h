@@ -124,7 +124,7 @@ public:
         typename R = details::result_of_t<F>,
         typename CHECK_R = typename std::enable_if<std::is_void<R>::value>::type>
     void submit(F&& task) {
-        assert(m_batch_list.size() > 0);
+        assert(!m_batch_list.empty());
         auto* this_batch = m_cur_batch->get();
         auto* target_batch = find_optimal_batch(m_cur_batch)->get();
         return target_batch->submit<T>(std::forward<F>(task));
@@ -145,7 +145,7 @@ public:
     template <typename T, typename F, typename... Fs>
     typename std::enable_if<std::is_same<T, task::sequence>::value>::type
     submit(F&& f, Fs&&... fs) {
-        assert(m_batch_list.size() > 0);
+        assert(!m_batch_list.empty());
         auto* this_batch = m_cur_batch->get();
         auto* target_batch = find_optimal_batch(m_cur_batch)->get();
         target_batch->submit<T>(std::forward<F>(f), std::forward<Fs>(fs)...);

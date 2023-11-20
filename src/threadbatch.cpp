@@ -22,11 +22,13 @@ void threadbatch::mission() {
             if (m_n_to_release > 0 && m_n_to_release--) {
                 m_workers.erase(std::this_thread::get_id()); // 释放当前线程
                 if (is_wait_task_done) {
-                    m_task_done_cv
-                        .notify_one(); // 通知等待的任务，此时线程已经销毁
+                    m_task_done_cv.notify_one(); // 通知等待的任务，此时线程已经销毁
+                    return;
                 }
                 if (is_destructing) {
                     m_thread_cv.notify_one(); // 通知析构中的条件等待
+                    return;   // ！！！ 这个 return 非常重要，如果函数退出不够及时，
+                          // 那么可能导致对象析构之前，还没有退出 mission 的执行，导致段错误
                 }
             }
         } else { // 任务队列中没有任务，且不需要析构线程
